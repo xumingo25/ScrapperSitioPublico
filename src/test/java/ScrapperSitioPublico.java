@@ -6,7 +6,12 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class ScrapperSitioPublico {
 
@@ -24,7 +29,6 @@ public class ScrapperSitioPublico {
 
         // Instanciar ChromeDriver con las opciones
         WebDriver driver = new ChromeDriver(options);
-
         // Maximizar ventana (no es estrictamente necesario en headless, pero es buena práctica)
         driver.manage().window().maximize();
 
@@ -59,6 +63,7 @@ public class ScrapperSitioPublico {
 
         // Buscar todos los bloques de licitaciones
         List<WebElement> licitaciones = driver.findElements(By.xpath("//div[@class='responsive-resultado']"));
+        List<String> oportunidadesEncontradas = new ArrayList<>();
 
         for (WebElement lic : licitaciones) {
             String id = lic.findElement(By.xpath(".//span[@class='clearfix']")).getText().trim();
@@ -89,8 +94,76 @@ public class ScrapperSitioPublico {
                             "📌 Estado: %s\n",
                     id, titulo, descripcion, monto, fechaPublicacion, fechaCierre, organismo, url, estado
             );
+            oportunidadesEncontradas.add(detalleOportunidad);
+        }
 
-            System.out.println(mailBody);
+        // Si se encontraron oportunidades, construir y enviar un único correo
+        if (!oportunidadesEncontradas.isEmpty()) {
+            StringBuilder mailBody = new StringBuilder();
+            mailBody.append("Oportunidades encontradas hoy en Mercado Publico en base al criterio \"desarrollo software\" que fue el parametro usado:\n\n");
+
+            for (String oportunidad : oportunidadesEncontradas) {
+                mailBody.append(oportunidad).append("\n");
+            }
+
+            sendEmail("Oportunidades de Desarrollo de Software", mailBody.toString());
+        } else {
+            System.out.println("No se encontraron nuevas oportunidades.");
+        }
+
+
+        // Cerrar navegador
+        driver.quit();
+    }
+
+    private void sendEmail(String subject, String body) {
+        // Leer configuración de variables de entorno
+        final String host = System.getenv("SMTP_HOST");
+        final String port = System.getenv("SMTP_PORT");
+        final String username = System.getenv("SMTP_USER");
+        final String password = System.getenv("SMTP_PASSWORD");
+        final String recipientEmail = System.getenv("RECIPIENT_EMAIL");
+
+        // Validar que las variables de entorno estén configuradas
+        if (host == null || port == null || username == null || password == null || recipientEmail == null) {
+            System.out.println("Error: Las variables de entorno para el envío de correo no están configuradas.");
+            System.out.println("Cuerpo del correo (no enviado):\n" + body);
+            return; // No intentar enviar si falta configuración
+        }
+
+        // Configurar propiedades para la sesión de JavaMail
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", host);
+        props.put("mail.smtp.port", port);
+
+        // Crear una sesión con autenticación
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(username, password);
+            }
+        });
+
+        try {
+            // Crear el mensaje de correo
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(username));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
+            message.setSubject(subject, "UTF-8");
+            // Establecer el contenido con codificación UTF-8
+            message.setContent(body, "text/plain; charset=utf-8");
+
+
+            // Enviar el mensaje
+            Transport.send(message);
+
+            System.out.println("Correo enviado exitosamente a " + recipientEmail);
+
+        } catch (MessagingException e) {
+            System.err.println("Error al enviar el correo: " + e.getMessage());
+            e.printStackTrace();
         }
 
         // Cerrar navegador
