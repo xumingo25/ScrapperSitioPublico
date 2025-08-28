@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.tsoft.scrapperSitioPublico'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    //CORE PARA APLICAR TESTING (@TEST, @BEFORE, ETC)
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    //SELENIUM PARA MANIPULAR EL BROWSER USANDO EL WEBDRIVER VIA CODIGO
+    testImplementation 'org.seleniumhq.selenium:selenium-java:3.141.59'
+
+    //WEBDRIVER MANAGER PARA LA GESTIÔN DEL DRIVER
+    testImplementation("io.github.bonigarcia:webdrivermanager:6.2.0")
+
+    //GHERKIN
+    testImplementation 'io.cucumber:cucumber-java:7.14.0'
+    testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.14.0'
+    testImplementation 'org.junit.platform:junit-platform-suite:1.10.0'
+}
+
+test {
+    useJUnitPlatform()
+}
