@@ -29,7 +29,6 @@ public class ScrapperSitioPublico {
 
         // Instanciar ChromeDriver con las opciones
         WebDriver driver = new ChromeDriver(options);
-
         // Maximizar ventana (no es estrictamente necesario en headless, pero es buena práctica)
         driver.manage().window().maximize();
 
@@ -49,7 +48,7 @@ public class ScrapperSitioPublico {
 
         // Limpiar y escribir "Desarollo software"
         inputBusqueda.clear();
-        inputBusqueda.sendKeys("Desarollo software");
+        inputBusqueda.sendKeys("desarrollo software");
 
         // Botón Buscar
         WebElement botonBuscar = driver.findElement(By.id("btnBuscar"));
@@ -71,23 +70,29 @@ public class ScrapperSitioPublico {
             String estado = lic.findElement(By.cssSelector(".estado-texto")).getText().trim();
             String titulo = lic.findElement(By.cssSelector("h2")).getText().trim();
             String descripcion = lic.findElement(By.cssSelector("p.text-weight-light")).getText().trim();
-            String monto = lic.findElement(By.xpath(".//span[@class='highlight-text text-weight-light campo-numerico-punto-coma']")).getText().trim();
-            String fechaPublicacion = lic.findElement(By.xpath(".//div[@class='col-md-4'][p[strong[contains(text(),'Fecha de publicación')]]]/span")).getText().trim();
+            String monto = lic.findElement(By.xpath("//p[strong[contains(normalize-space(.), 'Monto')]]/following-sibling::span")).getText().trim();
+            String fechaPublicacion = lic.findElement(By.xpath(".//div[@class='col-md-4'][p[strong[contains(text(),'Fecha de publicac')]]]/span")).getText().trim();
             String fechaCierre = lic.findElement(By.xpath(".//div[@class='col-md-4'][p[strong[contains(text(),'Fecha de cierre')]]]/span")).getText().trim();
             String organismo = lic.findElement(By.cssSelector(".lic-bloq-footer .col-md-4 strong")).getText().trim();
 
-            // Formatear los detalles de la oportunidad
-            String detalleOportunidad = String.format(
-                    "----------------------------------------\n" +
+            String onclickAttr = driver.findElement(
+                    By.xpath("//div[@class='col-md-12 row margin-bottom-md']//a")
+            ).getAttribute("onclick");
+
+            // Limpiar el string para extraer solo la URL
+            String url = onclickAttr.replaceAll(".*\\('(.*)'\\).*", "$1");
+            // Armar el texto para correo
+            String mailBody = String.format(
                     "📌 Licitación: %s\n" +
-                    "📖 Título: %s\n" +
-                    "📝 Descripción: %s\n" +
-                    "💲 Monto: %s\n" +
-                    "📅 Publicación: %s\n" +
-                    "⏳ Cierre: %s\n" +
-                    "🏛 Organismo: %s\n" +
-                    "📌 Estado: %s\n",
-                    id, titulo, descripcion, monto, fechaPublicacion, fechaCierre, organismo, estado
+                            "📖 Título: %s\n" +
+                            "📝 Descripción: %s\n" +
+                            "💲 Monto: %s\n" +
+                            "📅 Publicación: %s\n" +
+                            "⏳ Cierre: %s\n" +
+                            "🏛 Organismo: %s\n" +
+                            "🏛  Ver Info: %s\n" +
+                            "📌 Estado: %s\n",
+                    id, titulo, descripcion, monto, fechaPublicacion, fechaCierre, organismo, url, estado
             );
             oportunidadesEncontradas.add(detalleOportunidad);
         }
@@ -160,5 +165,8 @@ public class ScrapperSitioPublico {
             System.err.println("Error al enviar el correo: " + e.getMessage());
             e.printStackTrace();
         }
+
+        // Cerrar navegador
+        driver.quit();
     }
 }

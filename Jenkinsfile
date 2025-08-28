@@ -15,6 +15,7 @@ pipeline {
         // 3. Set the "ID" to "smtp-password" (or your preferred ID).
         // 4. Set the "Secret" to your email account password or an app password.
         SMTP_PASSWORD = credentials('smtp-password')
+      JAVA_TOOL_OPTIONS = "-Dfile.encoding=UTF-8"
     }
 
     stages {
