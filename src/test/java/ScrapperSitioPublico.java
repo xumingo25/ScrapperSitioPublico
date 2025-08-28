@@ -66,7 +66,7 @@ public class ScrapperSitioPublico {
             String titulo = lic.findElement(By.cssSelector("h2")).getText().trim();
             String descripcion = lic.findElement(By.cssSelector("p.text-weight-light")).getText().trim();
             String monto = lic.findElement(By.xpath("//p[strong[contains(normalize-space(.), 'Monto')]]/following-sibling::span")).getText().trim();
-            String fechaPublicacion = lic.findElement(By.xpath(".//div[@class='col-md-4'][p[strong[contains(text(),'Fecha de publicación')]]]/span")).getText().trim();
+            String fechaPublicacion = lic.findElement(By.xpath(".//div[@class='col-md-4'][p[strong[contains(text(),'Fecha de publicac')]]]/span")).getText().trim();
             String fechaCierre = lic.findElement(By.xpath(".//div[@class='col-md-4'][p[strong[contains(text(),'Fecha de cierre')]]]/span")).getText().trim();
             String organismo = lic.findElement(By.cssSelector(".lic-bloq-footer .col-md-4 strong")).getText().trim();
 
